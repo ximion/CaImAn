@@ -78,6 +78,8 @@ class GUI_magic_wand(animation.TimedAnimation):
         self.ax_img = self.fig.add_subplot(gs[55:100,0:NC//3])
         self.ax_img.axis('off')
         self.axs_imbuts = [self.fig.add_subplot(gs[110:128,idx*2:idx*2+2]) for idx,i in enumerate(self.images)]
+        self.axs_cmw_but = self.fig.add_subplot(gs[110:120,NC//2:]) 
+
         # trace axes
         self.ax_trcs = self.fig.add_subplot(gs[0:64,NC//2:])
         self.ax_trc = self.fig.add_subplot(gs[65:85,NC//2:])
@@ -94,6 +96,7 @@ class GUI_magic_wand(animation.TimedAnimation):
         self.sl_contrast0.on_changed(self.evt_contrast)
         self.sl_contrast1.on_changed(self.evt_contrast)
         self.img_buttons = [Button(ax,k) for k,ax in zip(self.images.keys(),self.axs_imbuts)]
+        self.cmw_button = Button(self.axs_cmw_but,'Cell Magic Wand')
         self.but_rm = Button(self.ax_rm, 'Remove All ROIs Currently in FOV')
 
         # display initial things
@@ -112,11 +115,18 @@ class GUI_magic_wand(animation.TimedAnimation):
         # callbacks
         for ib,lab in zip(self.img_buttons,self.images.keys()):
             ib.on_clicked(lambda evt, lab=lab: self.evt_imbut(evt,lab))
-            
+
+           
+
+       
         self.but_rm.on_clicked(self.remove_roi)
+        
         self.fig.canvas.mpl_connect('button_press_event', self.evt_click)
         self.ax_mov.callbacks.connect('xlim_changed', self.evt_zoom)
         self.ax_mov.callbacks.connect('ylim_changed', self.evt_zoom)
+        
+        self.
+        
         #self.fig.canvas.mpl_connect('button_press_event',self.evt_magic_wand)
         
             
@@ -181,6 +191,47 @@ class GUI_magic_wand(animation.TimedAnimation):
     def evt_imbut(self, evt, lab):
         self.imgdata.set_data(self.images[lab])
         self.ax_img.set_title(lab)
+        
+    def evt_cmw_but(self,evt,lab):
+            
+            x,y = int(np.round(evt.xdata)), int(np.round(evt.ydata))
+            print(x,y)
+            mask = cmw.cell_magic_wand_single_point(self.images['max'],(y,x),1,10,roughness = 2)[0]
+            print(mask)
+            contours = measure.find_contours(mask,0.8)[0]
+            
+            idx = np.ravel_multi_index((y,x), mask.shape)
+                    
+            # inside = np.argwhere([idx in ri for ri in self.roi_idxs])
+            
+                             
+            #if len(inside)==0:
+            #    print('returning')
+            #    return
+            # i = inside[0]
+            # print(i)
+            print(idx)
+            print(self.traces.shape)
+            #self.set_current_trace(idx)
+            
+            # l = len(contours)
+            # np.array(contours).reshape((2,l)
+            #self.ax_img.imshow(self.images['mean'],cmap='hot')
+            # self.ax_img.imshow(mask,alpha=.3,cmap='hot')
+            self.ax_img.plot(contours[:,1],contours[:,0])
+            #self.ax_mov.plot(contours[:,1],contours[:,0])
+            # proi = pretty_roi(mask)
+            # self.roidata.set_data(proi)
+            
+            # self.ax_mov.imshow(mask,alpha=.3,cmap='hot')
+            #self.ax_mov.imshow(mask,alpha=.3,cmap='hot')
+            
+            #slf.imgdata.set_data(mask,alpha=.3,cmap='hot')
+            #self.movdata.set_data(mask)
+            # self.ax_img.contour(mask)
+            #self.imgdata.set_data(mask)
+            self.mask = mask
+            
 
     def evt_click(self, evt):
         if not evt.inaxes:
