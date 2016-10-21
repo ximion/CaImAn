@@ -114,7 +114,6 @@ class GUI_magic_wand(animation.TimedAnimation):
             ib.on_clicked(lambda evt, lab=lab: self.evt_imbut(evt,lab))
             
         self.but_rm.on_clicked(self.remove_roi)
-        se
         self.fig.canvas.mpl_connect('button_press_event', self.evt_click)
         self.ax_mov.callbacks.connect('xlim_changed', self.evt_zoom)
         self.ax_mov.callbacks.connect('ylim_changed', self.evt_zoom)
@@ -220,7 +219,7 @@ class GUI_magic_wand(animation.TimedAnimation):
             # print(i)
             print(idx)
             print(self.traces.shape)
-            self.set_specific_trace(idx)
+            #self.set_current_trace(idx)
             
             # l = len(contours)
             # np.array(contours).reshape((2,l)
@@ -350,7 +349,7 @@ if __name__ == '__main__':
     masks[2,10:30,50:80]=1
     roi = masks
     
-    tr = np.random.random([2000,mean.shape[0]*mean.shape[1]])#np.load('/Users/ben/Desktop/tr.npy') roi
+    tr = np.random.random([mean.shape[0]*mean.shape[1],3])#np.load('/Users/ben/Desktop/tr.npy') roi
 
     # run interface
     intfc = GUI_magic_wand(mov, roi, tr, images=dict(mean=mean,min=minn,max=maxx))
