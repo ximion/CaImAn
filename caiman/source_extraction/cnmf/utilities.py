@@ -36,7 +36,8 @@ from ...mmapping import parallel_dot_product
 def CNMFSetParms(Y, n_processes, K=30, gSig=[5, 5], ssub=2, tsub=2, p=2, p_ssub=2, p_tsub=2,
                  thr=0.8, method_init='greedy_roi', nb=1, n_pixels_per_process=1000, block_size=1000,
                  check_nan=True, normalize_init=True, options_local_NMF=None, remove_very_bad_comps=False,
-                 alpha_snmf=10e2, update_background_components = True, low_rank_background= True, rolling_sum = False):
+                 alpha_snmf=10e2, update_background_components = True, low_rank_background= True, rolling_sum = False,
+                 extract_cc = True):
     """Dictionary for setting the CNMF parameters.
 
     Any parameter that is not set get a default value specified

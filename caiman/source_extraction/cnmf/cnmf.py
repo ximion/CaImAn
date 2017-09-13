@@ -65,7 +65,7 @@ class CNMF(object):
                  method_deconvolution = 'oasis', n_pixels_per_process = 4000, block_size = 20000,
                  check_nan = True, skip_refinement = False, normalize_init=True, options_local_NMF = None,
                  remove_very_bad_comps = False, border_pix = 0, low_rank_background = True, update_background_components = True,
-                 rolling_sum = False, rolling_length = 100):
+                 rolling_sum = False, rolling_length = 100, extract_cc = True):
         """ 
         Constructor of the CNMF method
 
@@ -220,6 +220,7 @@ class CNMF(object):
         self.update_background_components = update_background_components 
         self.rolling_sum = rolling_sum
         self.rolling_length = rolling_length
+        self.extract_cc = extract_cc
 
 
     def fit(self, images):
@@ -266,7 +267,8 @@ class CNMF(object):
                                check_nan=self.check_nan, nb=self.gnb, normalize_init = self.normalize_init,
                                options_local_NMF = self.options_local_NMF,
                                remove_very_bad_comps = self.remove_very_bad_comps, low_rank_background = self.low_rank_background, 
-                               update_background_components = self.update_background_components, rolling_sum = self.rolling_sum)
+                               update_background_components = self.update_background_components, rolling_sum = self.rolling_sum,
+                               extract_cc = self.extract_cc)
 
         self.options = options
         

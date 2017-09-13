@@ -134,7 +134,9 @@ def cnmf_patches(args_in):
                 normalize_init = options['init_params']['normalize_init'],
                 remove_very_bad_comps = options['patch_params']['remove_very_bad_comps'],
                 rolling_sum = options['init_params']['rolling_sum'],
-                rolling_length = options['init_params']['rolling_length'])
+                rolling_length = options['init_params']['rolling_length'],
+                extract_cc = options['spatial_params']['extract_cc']
+                )
 
         cnm = cnm.fit(images)
         return idx_,shapes,scipy.sparse.coo_matrix(cnm.A),\
