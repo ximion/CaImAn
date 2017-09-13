@@ -260,7 +260,7 @@ class CNMF(object):
         # Make sure filename is pointed correctly (numpy sets it to None sometimes)
         Y.filename = images.filename
         Yr.filename = images.filename
-
+        
         options = CNMFSetParms(Y, self.n_processes, p=self.p, gSig=self.gSig, K=self.k, ssub=self.ssub, tsub=self.tsub,
                                p_ssub=self.p_ssub, p_tsub=self.p_tsub, method_init=self.method_init,
                                n_pixels_per_process=self.n_pixels_per_process, block_size=self.block_size,
@@ -327,7 +327,7 @@ class CNMF(object):
                 
                 return self
 
-            print('update spatial ...')
+            print('update spatial ...')                        
             A, b, Cin, self.f_in = update_spatial_components(Yr, C = self.Cin, f = self.f_in, b_in = self.b_in, A_in = self.Ain,
                                                              sn=sn, dview=self.dview, **options['spatial_params'])
 
@@ -388,7 +388,8 @@ class CNMF(object):
 
             options = CNMFSetParms(Y, self.n_processes, p=self.p, gSig=self.gSig, K=A.shape[
                                    -1], thr=self.merge_thresh, n_pixels_per_process=self.n_pixels_per_process,
-                                   block_size=self.block_size, check_nan=self.check_nan)
+                                   block_size=self.block_size, check_nan=self.check_nan,rolling_sum = self.rolling_sum,
+                                   extract_cc = self.extract_cc)
 
             options['temporal_params']['method'] = self.method_deconvolution
 

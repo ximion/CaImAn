@@ -291,7 +291,7 @@ def CNMFSetParms(Y, n_processes, K=30, gSig=[5, 5], ssub=2, tsub=2, p=2, p_ssub=
         'maxthr' : 0.1,                                 # Max threshold
         'nrgthr' : 0.9999,                              # Energy threshold
         # Flag to extract connected components (might want to turn to False for dendritic imaging)
-        'extract_cc' : True,
+        'extract_cc' : extract_cc,
         'se' : np.ones((3,)*len(dims), dtype=np.uint8),           # Morphological closing structuring element
         'ss' : np.ones((3,)*len(dims), dtype=np.uint8),           # Binary element for determining connectivity
         'nb' : nb,                                      # number of background components

@@ -5,6 +5,20 @@ Created on Wed Sep 13 12:09:11 2017
 @author: epnevmatikakis
 """
 
+from __future__ import print_function
+from builtins import str
+from builtins import range
+try:
+    if __IPYTHON__:
+        print('Debugging!')
+        # this is used for debugging purposes only. allows to reload classes when changed
+        get_ipython().magic('load_ext autoreload')
+        get_ipython().magic('autoreload 2')
+except NameError:
+    print('Not IPYTHON')
+    pass
+
+
 import numpy as np
 import glob
 import pylab as pl
@@ -17,7 +31,7 @@ c,dview,n_processes = cm.cluster.setup_cluster(backend = 'local',n_processes = N
 #%% FOR LOADING ALL TIFF FILES IN A FILE AND SAVING THEM ON A SINGLE MEMORY MAPPABLE FILE
 fnames = ['/Users/epnevmatikakis/Documents/Ca_datasets/Tolias/quietBlock_data.tif'] # can actually be a lost of movie to concatenate
 add_to_movie= 0  # the movie must be positive!!!
-downsample_factor= 1 # use .2 or .1 if file is large and you want a quick answer
+downsample_factor= .2 # use .2 or .1 if file is large and you want a quick answer
 base_name='Yr'
 name_new=cm.save_memmap_each(fnames, dview=dview,base_name=base_name, resize_fact=(1, 1, downsample_factor),add_to_movie=add_to_movie)
 name_new.sort()
@@ -43,10 +57,10 @@ gSig = [7, 7]  # expected half size of neurons
 merge_thresh = 0.8  # merging threshold, max correlation allowed
 p = 2  # order of the autoregressive system
 is_dendrites = True
-alpha_snmf = 1e0
+alpha_snmf = 1e-1
 # iinit method can be greedy_roi for round shapes or sparse_nmf for denritic data
 cnm = cnmf.CNMF(n_processes, method_init='sparse_nmf', alpha_snmf = alpha_snmf, k=K, gSig=gSig, merge_thresh=merge_thresh,
-                p=p, dview=dview, Ain=None,method_deconvolution='oasis',rolling_sum = False,gnb=3,stride=(48,48))
+                p=p, dview=dview, Ain=None,method_deconvolution='oasis',rolling_sum = False, gnb=1,stride=(16,16), extract_cc = False)
 cnm = cnm.fit(images)
 A, C, b, f, YrA, sn = cnm.A, cnm.C, cnm.b, cnm.f, cnm.YrA, cnm.sn
 #%%

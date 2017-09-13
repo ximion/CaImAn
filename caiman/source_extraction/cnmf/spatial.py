@@ -567,7 +567,7 @@ def construct_ellipse_parallel(pars):
 # %% threshold_components
 
 
-def threshold_components(A, dims, medw=None, thr_method='nrg', maxthr=0.1, nrgthr=0.9999, extract_cc=True,
+def threshold_components(A, dims, medw=None, thr_method='nrg', maxthr=0.1, nrgthr=0.9999, extract_cc= True,
                          se=None, ss=None, dview=None):
     """
     Post-processing of spatial components which includes the following steps
