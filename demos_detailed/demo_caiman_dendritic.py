@@ -9,7 +9,7 @@ from __future__ import print_function
 from builtins import str
 from builtins import range
 try:
-    if __IPYTHON__:
+    if __IPYTHON__: 
         print('Debugging!')
         # this is used for debugging purposes only. allows to reload classes when changed
         get_ipython().magic('load_ext autoreload')
@@ -30,7 +30,7 @@ import os
 c,dview,n_processes = cm.cluster.setup_cluster(backend = 'local',n_processes = None,single_thread = False)
 #%% FOR LOADING ALL TIFF FILES IN A FILE AND SAVING THEM ON A SINGLE MEMORY MAPPABLE FILE
 fnames = ['/Users/epnevmatikakis/Documents/Ca_datasets/Tolias/quietBlock_data.tif'] # can actually be a lost of movie to concatenate
-add_to_movie= 0  # the movie must be positive!!!
+add_to_movie= 520  # the movie must be positive!!!
 downsample_factor= .2 # use .2 or .1 if file is large and you want a quick answer
 base_name='Yr'
 name_new=cm.save_memmap_each(fnames, dview=dview,base_name=base_name, resize_fact=(1, 1, downsample_factor),add_to_movie=add_to_movie)
@@ -52,21 +52,22 @@ if np.min(images)<0:
 Cn = cm.movie(images)[:3000].local_correlations(swap_dim=False)
 pl.imshow(Cn,cmap='gray')  
 #%%
-K = 10  # number of neurons expected per patch
+K = 6  # number of neurons expected per patch
 gSig = [7, 7]  # expected half size of neurons
-merge_thresh = 0.8  # merging threshold, max correlation allowed
+merge_thresh = 0.6  # merging threshold, max correlation allowed
 p = 2  # order of the autoregressive system
 is_dendrites = True
-alpha_snmf = 1e-1
+alpha_snmf = 1e2
 # iinit method can be greedy_roi for round shapes or sparse_nmf for denritic data
 cnm = cnmf.CNMF(n_processes, method_init='sparse_nmf', alpha_snmf = alpha_snmf, k=K, gSig=gSig, merge_thresh=merge_thresh,
-                p=p, dview=dview, Ain=None,method_deconvolution='oasis',rolling_sum = False, gnb=1,stride=(16,16), extract_cc = False)
+                p=p, dview=dview, Ain=None,method_deconvolution='oasis',rolling_sum = False, gnb=2,stride=(10,10), rf = (30,30), extract_cc = False,
+                low_rank_background=False)
 cnm = cnm.fit(images)
 A, C, b, f, YrA, sn = cnm.A, cnm.C, cnm.b, cnm.f, cnm.YrA, cnm.sn
 #%%
 crd = cm.utils.visualization.plot_contours(cnm.A, Cn, thr=0.9)
 #%% evaluate the quality of the components
-final_frate = 10# approximate frame rate of data
+final_frate = 10 # approximate frame rate of data
 Npeaks = 10
 traces = C + YrA
 fitness_raw, fitness_delta, erfc_raw, erfc_delta, r_values, significant_samples = \
@@ -91,6 +92,7 @@ pl.subplot(1, 2, 2)
 pl.title('discaded components')
 crd = cm.utils.visualization.plot_contours(A.tocsc()[:, idx_components_bad], Cn, thr=0.9)
 #%% visualize selected components
+#pl.figure()
 cm.utils.visualization.view_patches_bar(Yr, A.tocsc(), C, b, f, dims[0], dims[1], YrA=YrA, img=Cn)
 
 #%% STOP CLUSTER and clean up log files   

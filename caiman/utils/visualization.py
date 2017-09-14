@@ -768,8 +768,8 @@ def view_patches_bar(Yr, A, C, b, f, d1, d2, YrA=None, img=None):
         Y_r = YrA + C
 
     A = A * spdiags(old_div(1, nA2), 0, nr, nr)
-    A = A.todense()
-    imgs = np.reshape(np.array(A), (d1, d2, nr), order='F')
+    imgs = A.todense()
+    imgs = np.reshape(np.array(imgs), (d1, d2, nr), order='F')
     if img is None:
         img = np.mean(imgs[:, :, :-1], axis=-1)
 
@@ -785,9 +785,10 @@ def view_patches_bar(Yr, A, C, b, f, d1, d2, YrA=None, img=None):
     ax2 = pl.axes([0.05, 0.1, 0.9, 0.4])
 #    axcolor = 'lightgoldenrodyellow'
 #    axcomp = pl.axes([0.25, 0.1, 0.65, 0.03], axisbg=axcolor)
-
+        
     s_comp = Slider(axcomp, 'Component', 0, nr + nb - 1, valinit=0)
-    vmax = np.percentile(img, 98)
+        
+    #vmax = np.max(img)*.1
 
     def update(val):
         i = np.int(np.round(s_comp.val))
@@ -797,7 +798,7 @@ def view_patches_bar(Yr, A, C, b, f, d1, d2, YrA=None, img=None):
 
             ax1.cla()
             imgtmp = imgs[:, :, i]
-            ax1.imshow(imgtmp, interpolation='None', cmap=pl.cm.gray)
+            ax1.imshow(imgtmp, interpolation='None', cmap=pl.cm.gray, vmax=np.percentile(imgtmp[imgtmp>0],98))
             ax1.set_title('Spatial component ' + str(i + 1))
             ax1.axis('off')
 
@@ -808,7 +809,7 @@ def view_patches_bar(Yr, A, C, b, f, d1, d2, YrA=None, img=None):
             ax2.legend(labels=['Filtered raw data', 'Inferred trace'])
 
             ax3.cla()
-            ax3.imshow(img, interpolation='None', cmap=pl.cm.gray, vmax=vmax)
+            ax3.imshow(img, interpolation='None', cmap=pl.cm.gray, vmax=np.percentile(img,98))
             imgtmp2 = imgtmp.copy()
             imgtmp2[imgtmp2 == 0] = np.nan
             ax3.imshow(imgtmp2, interpolation='None', alpha=0.5, cmap=pl.cm.hot)
