@@ -278,7 +278,6 @@ class CNMF(object):
         T = images.shape[0]
         self.initbatch = T
         dims = images.shape[1:]
-        #Yr = images.reshape([T, np.prod(dims)], order='F').T
         Y = np.transpose(images, list(range(1, len(dims) + 1)) + [0])
         Yr = np.transpose(np.reshape(images, (T, -1), order='F'))
         print((T,) + dims)
@@ -288,12 +287,11 @@ class CNMF(object):
         Yr.filename = images.filename
 
         options = CNMFSetParms(Y, self.n_processes, p=self.p, gSig=self.gSig, K=self.k, ssub=self.ssub, tsub=self.tsub,
-        					   
-                               p_ssub=self.p_ssub,p_tsub=self.p_tsub, method_init=self.method_init,
+                               p_ssub=self.p_ssub, p_tsub=self.p_tsub, method_init=self.method_init,
                                n_pixels_per_process=self.n_pixels_per_process, block_size=self.block_size,
-                               check_nan=self.check_nan, nb=self.gnb, normalize_init=self.normalize_init,
-                               options_local_NMF=self.options_local_NMF, 
-                         	   remove_very_bad_comps = self.remove_very_bad_comps, low_rank_background = self.low_rank_background,
+                               check_nan=self.check_nan, nb=self.gnb, normalize_init = self.normalize_init,
+                               options_local_NMF = self.options_local_NMF,
+                               remove_very_bad_comps = self.remove_very_bad_comps, low_rank_background = self.low_rank_background, 
                                update_background_components = self.update_background_components, rolling_sum = self.rolling_sum)
 
         self.options = options
@@ -354,8 +352,7 @@ class CNMF(object):
                 return self
 
             print('update spatial ...')
-            A, b, Cin, self.f_in = update_spatial_components(
-				Yr, C = self.Cin, f = self.f_in, b_in = self.b_in, A_in = self.Ain,
+            A, b, Cin, self.f_in = update_spatial_components(Yr, C = self.Cin, f = self.f_in, b_in = self.b_in, A_in = self.Ain,
                                                              sn=sn, dview=self.dview, **options['spatial_params'])
 
             print('update temporal ...')
@@ -412,9 +409,9 @@ class CNMF(object):
                 options['init_params']['alpha_snmf'] = self.alpha_snmf
 
             A, C, YrA, b, f, sn, optional_outputs = run_CNMF_patches(images.filename, dims + (T,),
-                                   									 options, rf=self.rf, stride=self.stride,
-																	 dview=self.dview, memory_fact=self.memory_fact,
-																	 gnb=self.gnb, border_pix = self.border_pix, low_rank_background = self.low_rank_background)
+                                                                     options, rf=self.rf, stride=self.stride,
+                                                                     dview=self.dview, memory_fact=self.memory_fact,
+                                                                     gnb=self.gnb, border_pix = self.border_pix, low_rank_background = self.low_rank_background)
 
             options = CNMFSetParms(Y, self.n_processes, p=self.p, gSig=self.gSig, K=A.shape[
                                    -1], thr=self.merge_thresh, n_pixels_per_process=self.n_pixels_per_process,
