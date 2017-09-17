@@ -2005,25 +2005,26 @@ def tile_and_correct_wrapper(params):
 
 
 #%%
-def motion_correction_piecewise(fname, splits, strides, overlaps, add_to_movie=0, template = None, max_shifts = (12,12),max_deviation_rigid = 3,newoverlaps = None, newstrides = None,\
-                                upsample_factor_grid = 4, order = 'F',dview = None,save_movie= True, base_name = None, num_splits = None,shifts_opencv= False):
-    '''
+def motion_correction_piecewise(fname, splits, strides, overlaps, add_to_movie=0, template = None,
+                                max_shifts = (12,12),max_deviation_rigid = 3,newoverlaps = None, newstrides = None,
+                                upsample_factor_grid = 4, order = 'F',dview = None,save_movie= True,
+                                base_name = None, num_splits = None,shifts_opencv= False, nonneg_movie = False):
+    """
 
-    '''
+    """
+    #todo todocument
     import os
-
+    import h5py
     name, extension = os.path.splitext(fname)[:2]
 
-    if extension == '.tif' or extension == '.tiff':  # check if tiff file       
-        
+    if extension == '.tif' or extension == '.tiff':  # check if tiff file
         with tifffile.TiffFile(fname) as tf:
-
            if len(tf) == 1:
                T,d1,d2 = tf[0].shape
            else:    
                d1,d2 = tf[0].shape
                T = len(tf)    
-           
+               
     elif extension == '.sbx':  # check if sbx file
          
         shape = cm.base.movies.sbxshape(name)
@@ -2033,23 +2034,26 @@ def motion_correction_piecewise(fname, splits, strides, overlaps, add_to_movie=0
 
     elif extension == '.npy':
         raise Exception('Numpy not supported at the moment')
-#        shape = np.load(fname,mmap_mode='r').shape
-#        d1 = shape[1]
-#        d2 = shape[2]
-#        T = shape[0]               
+
+    elif extension == '.hdf5':
+        with h5py.File(fname) as fl:
+           T,d1,d2 = fl['mov'].shape 
+           
+    elif extension == '.h5':
+        with h5py.File(fname) as fl:
+            if 'imaging' in fl.keys():
+                T,_,d1,d2,_ = fl['imaging'].shape 
+            else:
+                raise Exception('Unsupported file key for for h5 files in parallel motion correction')
     else:
         raise Exception('Unsupported file extension for parallel motion correction')
         
-        
     if type(splits) is int:
-        
          idxs = np.array_split(list(range(T)),splits)
     
     else:
          idxs = splits
          save_movie = False
-
-
     if template is None:
          raise Exception('Not implemented')
 
@@ -2064,27 +2068,23 @@ def motion_correction_piecewise(fname, splits, strides, overlaps, add_to_movie=0
     if save_movie:
        if base_name is None:
            base_name = os.path.split(fname)[1][:-4]
-       fname_tot = base_name + '_d1_' + str(dims[0]) + '_d2_' + str(dims[1]) + '_d3_' + str(1 if len(dims) == 2 else dims[2]) + '_order_' + str(order) + '_frames_' + str(T) + '_.mmap'
+       fname_tot = base_name + '_d1_' + str(dims[0]) + '_d2_' + str(dims[1]) + '_d3_' + str(
+           1 if len(dims) == 2 else dims[2]) + '_order_' + str(order) + '_frames_' + str(T) + '_.mmap'
        fname_tot = os.path.join(os.path.split(fname)[0],fname_tot) 
        np.memmap(fname_tot, mode='w+', dtype=np.float32, shape=shape_mov, order=order)
     else:
         fname_tot = None
-    
     pars = []
     for idx in idxs:
-      pars.append([fname,fname_tot,idx,shape_mov, template, strides, overlaps, max_shifts, np.array(add_to_movie,dtype = np.float32),max_deviation_rigid,upsample_factor_grid, newoverlaps, newstrides, shifts_opencv ])
+      pars.append([fname,fname_tot,idx,shape_mov, template, strides, overlaps, max_shifts, np.array(
+          add_to_movie,dtype = np.float32),max_deviation_rigid,upsample_factor_grid,
+                   newoverlaps, newstrides, shifts_opencv,nonneg_movie  ])
 
-    t1 = time.time()
-    
     if dview is not None:
-    
         res =dview.map_sync(tile_and_correct_wrapper,pars)
     
     else:
         res = list(map(tile_and_correct_wrapper,pars))
-        
-    print((time.time()-t1))    
-            
-    
+
 
     return fname_tot, res   
