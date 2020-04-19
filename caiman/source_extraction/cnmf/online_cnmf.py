@@ -199,7 +199,7 @@ class OnACID(object):
             X -= self.estimates.b0[:, None]
             if ssub_B > 1:
                 self.estimates.downscale_matrix = decimation_matrix(self.estimates.dims, ssub_B)
-                self.estimates.upscale_matrix = self.estimates.downscale_matrix.T.tocsc()
+                self.estimates.upscale_matrix = self.estimates.downscale_matrix.T #.tocsc()
                 self.estimates.upscale_matrix.data = np.ones_like(self.estimates.upscale_matrix.data)
                 X = self.estimates.downscale_matrix.dot(X)
             if self.params.get('online', 'full_XXt'):
@@ -2002,26 +2002,28 @@ def corr(a, b):
     return a.dot(b) / sqrt(a.dot(a) * b.dot(b) + np.finfo(float).eps)
 
 
-def rank1nmf(Ypx, ain):
+def rank1nmf(Ypx, ain, iters=10):
     """
     perform a fast rank 1 NMF
     """
     # cin_old = -1
-    for _ in range(15):
-        cin_res = ain.T.dot(Ypx)  # / ain.dot(ain)
+    eps = np.finfo(np.float32).eps
+    for t in range(iters):
+        cin_res = ain.dot(Ypx)  # / ain.dot(ain)
         cin = np.maximum(cin_res, 0)
-        ain = np.maximum(Ypx.dot(cin.T), 0)
-        try:
-            ain /= (sqrt(ain.dot(ain)) + np.finfo(np.float32).eps)
-        except:
-            break
+        ain = np.maximum(Ypx.dot(cin), 0)
+        # ain /= (sqrt(ain.dot(ain)) + np.finfo(np.float32).eps)
+        if t in (0, iters-1):
+            ain /= (sqrt(ain.dot(ain)) + eps)
+        elif t % 2 == 0:  # division by squared norm every 2nd iter is faster yet numerically stable
+            ain /= (ain.dot(ain) + eps)
         # nc = cin.dot(cin)
         # ain = np.maximum(Ypx.dot(cin.T) / nc, 0)
         # tmp = cin - cin_old
         # if tmp.dot(tmp) < 1e-6 * nc:
         #     break
         # cin_old = cin.copy()
-    cin_res = ain.T.dot(Ypx)  # / ain.dot(ain)
+    cin_res = ain.dot(Ypx)  # / ain.dot(ain)
     cin = np.maximum(cin_res, 0)
     return ain, cin, cin_res
 
