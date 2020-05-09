@@ -1460,6 +1460,7 @@ def init_neurons_corr_pnr(data, max_number=None, gSiz=15, gSig=None,
 
         writer.grab_frame()
 
+    all_centers = []
     while continue_searching:
         if seed_method.lower() == 'manual':
             # manually pick seed pixels
@@ -1475,38 +1476,44 @@ def init_neurons_corr_pnr(data, max_number=None, gSiz=15, gSig=None,
                 img = (v_search, cn, pnr)[i]
                 plt.imshow(img, interpolation=None, vmin=np.percentile(img[~np.isnan(img)], 1),
                            vmax=np.percentile(img[~np.isnan(img)], 99), cmap='gray')
+                if len(all_centers):
+                    plt.scatter(*np.transpose(all_centers), c='b')
                 plt.axis('off')
                 plt.title(title)
-            plt.suptitle('Click to add component. Click again to remove it. Press any key when done.')
+            plt.suptitle('Click to add component. Click again on it to remove it. Press any key to update figure. Add more components, or press any key again when done.')
             centers = []
-            while True:
-                new_center = fig.ginput(1, timeout=0)
-                if new_center != []:
-                    new_center = list(map(lambda a: int(round(a)), new_center[0]))
-                    if new_center in centers:
-                        centers.remove(new_center)
-                    else:
-                        centers.append(new_center)
-                    print(centers)
-                    ax.clear()
-                    if len(centers):
-                        ax.plot(data_filtered[:, centers[-1][1], centers[-1][0]], c='r')
-                    for sc in sc_all:
-                        sc.set_offsets(centers)
-                    for sc in sc_select:
-                        sc.set_offsets(centers[-1:])
-                    plt.draw()
-                if plt.waitforbuttonpress():
-                    plt.close(fig)
-                    break
+
+            def key_press(event):
+                plt.close(fig)
+
+            def onclick(event):
+                new_center = int(round(event.xdata)), int(round(event.ydata))
+                if new_center in centers:
+                    centers.remove(new_center)
+                else:
+                    centers.append(new_center)
+                print(centers)
+                ax.clear()
+                if len(centers):
+                    ax.plot(data_filtered[:, centers[-1][1], centers[-1][0]], c='r')
+                for sc in sc_all:
+                    sc.set_offsets(centers)
+                for sc in sc_select:
+                    sc.set_offsets(centers[-1:])
+                plt.draw()
+
+            cid = fig.canvas.mpl_connect('key_press_event', key_press)
+            fig.canvas.mpl_connect('button_press_event', onclick)
+            plt.show(block=True)
+
             if centers == []:
                 break
+            all_centers += centers
             csub_max, rsub_max = np.transpose(centers)
             tmp_kernel = np.ones(shape=tuple([int(round(gSiz / 4.))] * 2))
             v_max = cv2.dilate(v_search, tmp_kernel)
             local_max = v_max[rsub_max, csub_max]
             ind_local_max = local_max.argsort()[::-1]
-            continue_searching = False
 
         else:
             # local maximum, for identifying seed pixels in following steps
@@ -1671,8 +1678,8 @@ def init_neurons_corr_pnr(data, max_number=None, gSiz=15, gSig=None,
                 max_box = np.max(data_filtered_box, axis=0)
                 noise_box = noise_pixel[r2_min:r2_max, c2_min:c2_max]
                 pnr_box = np.divide(max_box, noise_box)
-                pnr_box[pnr_box < min_pnr] = 0
                 pnr[r2_min:r2_max, c2_min:c2_max] = pnr_box
+                pnr_box[pnr_box < min_pnr] = 0
 
                 # update correlation image
                 data_filtered_box[data_filtered_box <
